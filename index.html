@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legendary Discipline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        geminiBlue: '#4285f4',
+                        geminiPurple: '#9b72cb',
+                        geminiRed: '#d96570',
+                        bgDark: '#050505'
+                    },
+                    animation: {
+                        'blob': 'blob 15s infinite alternate',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'slide-up': 'slideUp 0.4s ease-out forwards'
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        .text-glow {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        .text-glow-emerald {
+            text-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
+        }
+        .text-glow-red {
+            text-shadow: 0 0 20px rgba(248, 113, 113, 0.5);
+        }
+        
+        /* Custom Checkbox */
+        .day-checkbox:checked + label {
+            background-color: #4285f4;
+            color: white;
+            border-color: #4285f4;
+        }
+
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2); 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4); 
+        }
+        
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen relative font-sans selection:bg-geminiPurple selection:text-white pb-20">
+
+    <!-- Animated Mesh Background -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-geminiBlue/20 blur-[120px] mix-blend-screen animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-geminiPurple/20 blur-[120px] mix-blend-screen animate-blob" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] rounded-full bg-geminiRed/20 blur-[120px] mix-blend-screen animate-blob" style="animation-delay: 4s;"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-12">
+        
+        <!-- Header & XP Bar -->
+        <header class="mb-12 animate-slide-up">
+            <div class="flex justify-between items-end mb-4">
+                <div>
+                    <h1 class="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">Legendary Discipline</h1>
+                    <p class="text-gray-400 mt-1 text-sm">No mercy. Miss a day, lose it all.</p>
+                </div>
+                <div class="text-right">
+                    <div id="rank-display" class="text-2xl font-bold flex items-center gap-2 justify-end text-glow">
+                        <span id="rank-icon">🌱</span>
+                        <span id="rank-name" class="text-gray-400">Newbie</span>
+                    </div>
+                    <div class="text-sm text-gray-400 mt-1"><span id="xp-counter" class="text-white font-bold">0</span> XP Total</div>
+                </div>
+            </div>
+            
+            <!-- XP Progress Bar -->
+            <div class="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5 relative">
+                <div id="xp-bar" class="h-full bg-gradient-to-r from-geminiBlue via-geminiPurple to-geminiRed transition-all duration-1000 ease-out w-0 shadow-[0_0_15px_rgba(155,114,203,0.8)]"></div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 mt-2 font-mono">
+                <span id="current-tier-xp">0 XP</span>
+                <span id="next-tier-xp">1,000 XP to Bronze</span>
+            </div>
+        </header>
+
+        <!-- The Streak Master -->
+        <section class="glass-card rounded-3xl p-8 mb-8 text-center animate-slide-up" style="animation-delay: 0.1s;">
+            <h2 class="text-gray-400 text-sm font-semibold uppercase tracking-widest mb-2">Main Workout Streak</h2>
+            <div class="text-8xl sm:text-9xl font-black mb-8 text-glow tracking-tighter" id="streak-counter">0</div>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button id="btn-done" class="px-8 py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-emerald-500 to-emerald-700 hover:from-emerald-400 hover:to-emerald-600 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                    MARK AS DONE (+100 XP)
+                </button>
+                <button id="btn-skip" class="px-8 py-4 rounded-xl font-bold text-lg bg-white/5 border border-white/10 hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-400 transition-all active:scale-95">
+                    I SKIPPED TODAY
+                </button>
+            </div>
+            <p id="workout-status-msg" class="text-emerald-400 text-sm mt-4 hidden font-medium">Workout completed for today. Rest up.</p>
+        </section>
+
+        <!-- Today's Quests -->
+        <section class="glass-card rounded-3xl p-6 sm:p-8 mb-8 animate-slide-up" style="animation-delay: 0.2s;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-geminiBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    Today's Quests
+                </h2>
+                <span id="today-date-display" class="text-sm text-gray-400 font-mono"></span>
+            </div>
+            
+            <div id="todays-tasks-list" class="space-y-3">
+                <!-- Injected via JS -->
+            </div>
+            
+            <div id="empty-today-msg" class="text-center py-8 hidden">
+                <p class="text-gray-500 italic">No quests scheduled for today. You are free... or lazy.</p>
+            </div>
+        </section>
+
+        <!-- Task Manager -->
+        <section class="glass-card rounded-3xl p-6 sm:p-8 animate-slide-up" style="animation-delay: 0.3s;">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-geminiPurple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Quest Master
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-1">Manage your habits. Warning: Added tasks MUST be completed on their scheduled days.</p>
+                </div>
+                <button id="btn-add-task" class="px-5 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 transition-colors text-sm font-semibold flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    New Quest
+                </button>
+            </div>
+
+            <div id="all-tasks-list" class="space-y-2">
+                <!-- Injected via JS -->
+            </div>
+            
+            <div id="empty-tasks-msg" class="text-center py-6 hidden">
+                <p class="text-gray-500 text-sm">Your quest log is empty.</p>
+            </div>
+        </section>
+
+        <!-- Dev Testing -->
+        <div class="mt-8 text-center animate-slide-up" style="animation-delay: 0.4s;">
+            <button id="btn-dev-next-day" class="text-xs text-gray-600 hover:text-white transition-colors underline">Dev Tool: Simulate Next Day (Tests Reset Logic)</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Skip Confirmation Modal -->
+    <dialog id="modal-skip" class="bg-transparent p-0 m-auto w-full max-w-md">
+        <div class="glass-card rounded-2xl p-6 sm:p-8 m-4 border-red-500/30 text-center relative overflow-hidden">
+            <div class="absolute inset-0 bg-red-500/5 z-0 pointer-events-none"></div>
+            <div class="relative z-10">
+                <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4 border border-red-500/30">
+                    <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Are you sure?</h3>
+                <p class="text-gray-300 mb-6 text-sm leading-relaxed">Skipping will instantly kill your streak and reset ALL your Total XP to 0. There is no coming back from this.</p>
+                <div class="flex gap-3 justify-center">
+                    <button id="btn-cancel-skip" class="px-5 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-sm font-semibold">Cancel</button>
+                    <button id="btn-confirm-skip" class="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition-colors text-white text-sm font-bold shadow-[0_0_15px_rgba(220,38,38,0.5)]">KILL STREAK</button>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Death / Hard Reset Modal -->
+    <dialog id="modal-death" class="bg-transparent p-0 m-auto w-full max-w-lg">
+        <div class="glass-card rounded-2xl p-6 sm:p-10 m-4 border-red-600/50 text-center relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-b from-red-900/20 to-black/80 z-0 pointer-events-none"></div>
+            <div class="relative z-10">
+                <h2 class="text-5xl font-black text-red-500 mb-4 tracking-tighter text-glow-red uppercase">Discipline Broken</h2>
+                <p class="text-gray-300 mb-2 text-lg">You missed a day or failed to complete your required quests.</p>
+                <p class="text-gray-400 mb-8 text-sm">Nature is unforgiving. Your Streak and XP have been reduced to ash.</p>
+                <div class="bg-black/50 rounded-xl p-4 mb-8 border border-white/5">
+                    <div class="flex justify-between items-center text-sm mb-2">
+                        <span class="text-gray-500">Lost Streak:</span>
+                        <span id="death-lost-streak" class="text-white font-bold text-lg">0</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-500">Lost XP:</span>
+                        <span id="death-lost-xp" class="text-white font-bold text-lg">0</span>
+                    </div>
+                </div>
+                <button id="btn-accept-death" class="w-full py-4 rounded-xl bg-white text-black hover:bg-gray-200 transition-colors font-bold text-lg">START OVER</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Add/Edit Task Modal -->
+    <dialog id="modal-task" class="bg-transparent p-0 m-auto w-full max-w-md">
+        <div class="glass-card rounded-2xl p-6 m-4 relative">
+            <h3 id="task-modal-title" class="text-xl font-bold text-white mb-6">Create New Quest</h3>
+            
+            <form id="task-form" class="space-y-5">
+                <input type="hidden" id="task-id">
+                
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Quest Title</label>
+                    <input type="text" id="task-title" required placeholder="e.g. Read 10 Pages" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-geminiBlue transition-colors placeholder-gray-600">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">XP Reward</label>
+                    <input type="number" id="task-xp" required min="10" max="500" step="10" value="50" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-geminiPurple transition-colors">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Active Days</label>
+                    <div class="flex justify-between gap-1">
+                        <!-- Days: 0=Sun, 1=Mon... 6=Sat -->
+                        <div class="relative flex-1 text-center"><input type="checkbox" id="day-1" value="1" class="day-checkbox sr-only" checked><label for="day-1" class="block w-full py-2 border border-white/10 rounded-md cursor-pointer text-sm text-gray-400 transition-colors hover:bg-white/5">M</label></div>
+                        <div class="relative flex-1 text-center"><input type="checkbox" id="day-2" value="2" class="day-checkbox sr-only" checked><label for="day-2" class="block w-full py-2 border border-white/10 rounded-md cursor-pointer text-sm text-gray-400 transition-colors hover:bg-white/5">T</label></div>
+                        <div class="relative flex-1 text-center"><input type="checkbox" id="day-3" value="3" class="day-checkbox sr-only" checked><label for="day-3" class="block w-full py-2 border border-white/10 rounded-md cursor-pointer text-sm text-gray-400 transition-colors hover:bg-white/5">W</label></div>
+                        <div class="relative flex-1 text-center"><input type="checkbox" id="day-4" value="4" class="day-checkbox sr-only" checked><label for="day-4" class="block w-full py-2 border border-white/10 rounded-md cursor-pointer text-sm text-gray-400 transition-colors hover:bg-white/5">T</label></div>
+                        <div class="relative flex-1 text-center"><input type="checkbox" id="day-5" value="5" class="day-checkbox sr-only" checked><label for="day-5" class="block w-full py-2 border border-white/10 rounded-md cursor-pointer text-sm text-gray-400 transition-colors hover:bg-white/5">F</label></div>
+                        <div class="relative flex-1 text-center"><input type="checkbox" id="day-6" value="6" class="day-checkbox sr-only" checked><label for="day-6" class="block w-full py-2 border border-white/10 rounded-md cursor-pointer text-sm text-gray-400 transition-colors hover:bg-white/5">S</label></div>
+                        <div class="relative flex-1 text-center"><input type="checkbox" id="day-0" value="0" class="day-checkbox sr-only" checked><label for="day-0" class="block w-full py-2 border border-white/10 rounded-md cursor-pointer text-sm text-gray-400 transition-colors hover:bg-white/5">S</label></div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 justify-end pt-4 border-t border-white/10">
+                    <button type="button" id="btn-cancel-task" class="px-5 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-geminiBlue hover:bg-blue-500 transition-colors text-white text-sm font-bold">Save Quest</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <script>
+        /**
+         * LEGENDARY DISCIPLINE - CORE LOGIC
+         */
+
+        // --- State Management ---
+        let state = {
+            xp: 0,
+            streak: 0,
+            tasks: [], // { id, title, xp, days: [0..6] }
+            completions: {}, // { 'YYYY-MM-DD': [taskId1, taskId2] }
+            workoutCompletions: {}, // { 'YYYY-MM-DD': boolean }
+            lastActiveDate: null // 'YYYY-MM-DD'
+        };
+
+        const RANKS = [
+            { threshold: 20000, name: 'Emerald', icon: '🐲', color: 'text-emerald-400', next: null },
+            { threshold: 10000, name: 'Diamond', icon: '💎', color: 'text-cyan-400', next: 20000 },
+            { threshold: 5000, name: 'Gold', icon: '🟡', color: 'text-yellow-400', next: 10000 },
+            { threshold: 2000, name: 'Iron', icon: '⚙️', color: 'text-gray-400', next: 5000 },
+            { threshold: 1000, name: 'Bronze', icon: '🥉', color: 'text-amber-600', next: 2000 },
+            { threshold: 0, name: 'Newbie', icon: '🌱', color: 'text-gray-500', next: 1000 }
+        ];
+
+        // --- Utilities ---
+        function getLocalYYYYMMDD(dateObj = new Date()) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function generateId() {
+            return Math.random().toString(36).substr(2, 9);
+        }
+
+        const todayStr = getLocalYYYYMMDD();
+        const todayDayOfWeek = new Date().getDay(); // 0=Sun, 1=Mon...
+
+        // --- DOM Elements ---
+        const els = {
+            xpCounter: document.getElementById('xp-counter'),
+            xpBar: document.getElementById('xp-bar'),
+            rankName: document.getElementById('rank-name'),
+            rankIcon: document.getElementById('rank-icon'),
+            streakCounter: document.getElementById('streak-counter'),
+            currentTierXp: document.getElementById('current-tier-xp'),
+            nextTierXp: document.getElementById('next-tier-xp'),
+            
+            btnDone: document.getElementById('btn-done'),
+            btnSkip: document.getElementById('btn-skip'),
+            workoutStatusMsg: document.getElementById('workout-status-msg'),
+            
+            todaysTasksList: document.getElementById('todays-tasks-list'),
+            emptyTodayMsg: document.getElementById('empty-today-msg'),
+            todayDateDisplay: document.getElementById('today-date-display'),
+            
+            allTasksList: document.getElementById('all-tasks-list'),
+            emptyTasksMsg: document.getElementById('empty-tasks-msg'),
+            btnAddTask: document.getElementById('btn-add-task'),
+            
+            modalTask: document.getElementById('modal-task'),
+            taskForm: document.getElementById('task-form'),
+            btnCancelTask: document.getElementById('btn-cancel-task'),
+            
+            modalSkip: document.getElementById('modal-skip'),
+            btnConfirmSkip: document.getElementById('btn-confirm-skip'),
+            btnCancelSkip: document.getElementById('btn-cancel-skip'),
+            
+            modalDeath: document.getElementById('modal-death'),
+            btnAcceptDeath: document.getElementById('btn-accept-death'),
+            deathLostStreak: document.getElementById('death-lost-streak'),
+            deathLostXp: document.getElementById('death-lost-xp'),
+
+            btnDevNextDay: document.getElementById('btn-dev-next-day')
+        };
+
+        // --- Initialization ---
+        function init() {
+            loadState();
+            
+            // Format Date for UI
+            const options = { weekday: 'long', month: 'short', day: 'numeric' };
+            els.todayDateDisplay.innerText = new Date().toLocaleDateString('en-US', options);
+
+            checkDeathLogic();
+            render();
+            setupEventListeners();
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('legendary_discipline_data');
+            if (saved) {
+                state = { ...state, ...JSON.parse(saved) };
+            }
+            // Ensure today's completion arrays exist
+            if (!state.completions[todayStr]) state.completions[todayStr] = [];
+            if (state.workoutCompletions[todayStr] === undefined) state.workoutCompletions[todayStr] = false;
+        }
+
+        function saveState() {
+            localStorage.setItem('legendary_discipline_data', JSON.stringify(state));
+        }
+
+        // --- Core Rules Logic ---
+        function checkDeathLogic() {
+            // First time opening app ever
+            if (!state.lastActiveDate) {
+                state.lastActiveDate = todayStr;
+                saveState();
+                return;
+            }
+
+            if (state.lastActiveDate === todayStr) return; // Already checked today
+
+            // Calculate missed days logic
+            let missedRequirements = false;
+            let checkDateStr = state.lastActiveDate;
+            let deathReason = "";
+
+            while (checkDateStr < todayStr) {
+                const d = new Date(checkDateStr + 'T12:00:00'); // Midday to avoid timezone shifting
+                const dayOfWeek = d.getDay();
+                
+                // 1. Did they do main workout?
+                const workoutDone = state.workoutCompletions[checkDateStr];
+                
+                // 2. Did they do all scheduled tasks?
+                const tasksForDay = state.tasks.filter(t => t.days.includes(dayOfWeek));
+                const completedTaskIds = state.completions[checkDateStr] || [];
+                const allTasksDone = tasksForDay.every(t => completedTaskIds.includes(t.id));
+
+                if (!workoutDone) {
+                    missedRequirements = true;
+                    deathReason = `Missed main workout on ${checkDateStr}`;
+                    break;
+                }
+                if (!allTasksDone) {
+                    missedRequirements = true;
+                    deathReason = `Missed daily quests on ${checkDateStr}`;
+                    break;
+                }
+
+                // Increment checkDateStr by 1 day
+                d.setDate(d.getDate() + 1);
+                checkDateStr = getLocalYYYYMMDD(d);
+            }
+
+            if (missedRequirements) {
+                triggerDeathModal(state.streak, state.xp);
+                hardReset();
+            }
+
+            // Update last active to today
+            state.lastActiveDate = todayStr;
+            saveState();
+        }
+
+        function triggerDeathModal(lostStreak, lostXp) {
+            if (lostStreak === 0 && lostXp === 0) return; // Silent reset if nothing lost
+            els.deathLostStreak.innerText = lostStreak;
+            els.deathLostXp.innerText = lostXp;
+            els.modalDeath.showModal();
+        }
+
+        function hardReset() {
+            state.xp = 0;
+            state.streak = 0;
+            saveState();
+            render();
+        }
+
+        // --- Actions ---
+        function addXp(amount) {
+            state.xp += amount;
+            saveState();
+            renderXp();
+        }
+
+        function toggleTaskCompletion(taskId) {
+            const todayCompletions = state.completions[todayStr];
+            const idx = todayCompletions.indexOf(taskId);
+            
+            if (idx === -1) {
+                // Complete
+                todayCompletions.push(taskId);
+                const task = state.tasks.find(t => t.id === taskId);
+                if(task) addXp(task.xp);
+            } else {
+                // Can't un-complete easily in a hardcore app, but we allow it for mistakes if needed.
+                // For "No Mercy", once done, it's locked.
+                return; 
+            }
+            saveState();
+            renderTodaysTasks();
+        }
+
+        // --- Rendering ---
+        function render() {
+            renderXp();
+            renderStreak();
+            renderTodaysTasks();
+            renderAllTasks();
+        }
+
+        function renderXp() {
+            els.xpCounter.innerText = state.xp.toLocaleString();
+            
+            // Find Rank
+            const rank = RANKS.find(r => state.xp >= r.threshold);
+            els.rankName.innerText = rank.name;
+            els.rankName.className = `font-bold ${rank.color}`;
+            els.rankIcon.innerText = rank.icon;
+
+            // Progress Bar
+            let progress = 100;
+            if (rank.next) {
+                const prevThreshold = rank.threshold;
+                const nextThreshold = rank.next;
+                const range = nextThreshold - prevThreshold;
+                const currentInTier = state.xp - prevThreshold;
+                progress = (currentInTier / range) * 100;
+                
+                els.currentTierXp.innerText = `${currentInTier.toLocaleString()} / ${range.toLocaleString()} Tier XP`;
+                els.nextTierXp.innerText = `${(nextThreshold - state.xp).toLocaleString()} XP to Next Rank`;
+            } else {
+                els.currentTierXp.innerText = "MAX RANK ACHIEVED";
+                els.nextTierXp.innerText = "Legendary Status";
+            }
+            
+            els.xpBar.style.width = `${progress}%`;
+        }
+
+        function renderStreak() {
+            els.streakCounter.innerText = state.streak;
+            const doneToday = state.workoutCompletions[todayStr];
+            
+            if (doneToday) {
+                els.btnDone.disabled = true;
+                els.btnDone.innerText = "LOCKED IN";
+                els.btnDone.classList.add('opacity-50', 'grayscale');
+                els.btnSkip.classList.add('hidden');
+                els.workoutStatusMsg.classList.remove('hidden');
+            } else {
+                els.btnDone.disabled = false;
+                els.btnDone.innerText = "MARK AS DONE (+100 XP)";
+                els.btnDone.classList.remove('opacity-50', 'grayscale');
+                els.btnSkip.classList.remove('hidden');
+                els.workoutStatusMsg.classList.add('hidden');
+            }
+        }
+
+        function renderTodaysTasks() {
+            const todaysTasks = state.tasks.filter(t => t.days.includes(todayDayOfWeek));
+            const completed = state.completions[todayStr] || [];
+
+            if (todaysTasks.length === 0) {
+                els.todaysTasksList.innerHTML = '';
+                els.emptyTodayMsg.classList.remove('hidden');
+                return;
+            }
+
+            els.emptyTodayMsg.classList.add('hidden');
+            els.todaysTasksList.innerHTML = todaysTasks.map(task => {
+                const isDone = completed.includes(task.id);
+                return `
+                    <div class="flex items-center justify-between p-4 rounded-xl border ${isDone ? 'bg-white/5 border-white/5 opacity-50' : 'bg-black/30 border-white/10 hover:border-geminiBlue/50 transition-colors'}">
+                        <div class="flex items-center gap-4">
+                            <button onclick="toggleTaskCompletion('${task.id}')" ${isDone ? 'disabled' : ''} class="w-6 h-6 rounded border ${isDone ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-gray-500 hover:border-geminiBlue'} flex items-center justify-center transition-colors">
+                                ${isDone ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                            </button>
+                            <span class="${isDone ? 'line-through text-gray-500' : 'text-white font-medium'}">${task.title}</span>
+                        </div>
+                        <span class="text-xs font-bold text-geminiPurple bg-geminiPurple/10 px-2 py-1 rounded">+${task.xp} XP</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderAllTasks() {
+            if (state.tasks.length === 0) {
+                els.allTasksList.innerHTML = '';
+                els.emptyTasksMsg.classList.remove('hidden');
+                return;
+            }
+
+            const dayNames = ['S','M','T','W','T','F','S'];
+
+            els.emptyTasksMsg.classList.add('hidden');
+            els.allTasksList.innerHTML = state.tasks.map(task => `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border border-white/5 bg-white/5 hover:bg-white/10 transition-colors gap-3 group">
+                    <div>
+                        <div class="text-sm font-semibold text-white">${task.title} <span class="text-xs text-geminiPurple font-normal ml-2">+${task.xp} XP</span></div>
+                        <div class="flex gap-1 mt-1">
+                            ${[1,2,3,4,5,6,0].map(d => `
+                                <span class="text-[10px] w-4 h-4 flex items-center justify-center rounded-full ${task.days.includes(d) ? 'bg-geminiBlue/20 text-geminiBlue border border-geminiBlue/30' : 'text-gray-600'}">${dayNames[d]}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="flex gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="editTask('${task.id}')" class="p-1.5 text-gray-400 hover:text-white bg-black/40 rounded hover:bg-black/60"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                        <button onclick="deleteTask('${task.id}')" class="p-1.5 text-red-400 hover:text-red-300 bg-red-900/20 rounded hover:bg-red-900/40"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- Task CRUD ---
+        function openTaskModal(task = null) {
+            if (task) {
+                document.getElementById('task-modal-title').innerText = "Edit Quest";
+                document.getElementById('task-id').value = task.id;
+                document.getElementById('task-title').value = task.title;
+                document.getElementById('task-xp').value = task.xp;
+                [0,1,2,3,4,5,6].forEach(d => {
+                    document.getElementById(`day-${d}`).checked = task.days.includes(d);
+                });
+            } else {
+                document.getElementById('task-modal-title').innerText = "Create New Quest";
+                els.taskForm.reset();
+                document.getElementById('task-id').value = '';
+                [0,1,2,3,4,5,6].forEach(d => {
+                    document.getElementById(`day-${d}`).checked = true; // default all days
+                });
+            }
+            els.modalTask.showModal();
+        }
+
+        window.editTask = (id) => {
+            const task = state.tasks.find(t => t.id === id);
+            if (task) openTaskModal(task);
+        };
+
+        window.deleteTask = (id) => {
+            if(confirm('Delete this quest permanently?')) {
+                state.tasks = state.tasks.filter(t => t.id !== id);
+                saveState();
+                renderTodaysTasks();
+                renderAllTasks();
+            }
+        };
+
+        els.taskForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('task-id').value;
+            const title = document.getElementById('task-title').value;
+            const xp = parseInt(document.getElementById('task-xp').value);
+            
+            const days = [];
+            [0,1,2,3,4,5,6].forEach(d => {
+                if (document.getElementById(`day-${d}`).checked) days.push(d);
+            });
+
+            if (days.length === 0) {
+                alert("Quest must be active on at least one day.");
+                return;
+            }
+
+            if (id) {
+                // Update
+                const task = state.tasks.find(t => t.id === id);
+                task.title = title;
+                task.xp = xp;
+                task.days = days;
+            } else {
+                // Create
+                state.tasks.push({ id: generateId(), title, xp, days });
+            }
+
+            saveState();
+            renderTodaysTasks();
+            renderAllTasks();
+            els.modalTask.close();
+        });
+
+        // --- Event Listeners ---
+        els.btnDone.addEventListener('click', () => {
+            state.workoutCompletions[todayStr] = true;
+            state.streak += 1;
+            addXp(100);
+            saveState();
+            renderStreak();
+            
+            // Visual pop
+            els.streakCounter.classList.remove('text-glow');
+            els.streakCounter.classList.add('text-glow-emerald', 'scale-110');
+            setTimeout(() => {
+                els.streakCounter.classList.remove('text-glow-emerald', 'scale-110');
+                els.streakCounter.classList.add('text-glow');
+            }, 300);
+        });
+
+        els.btnSkip.addEventListener('click', () => els.modalSkip.showModal());
+        els.btnCancelSkip.addEventListener('click', () => els.modalSkip.close());
+        els.btnConfirmSkip.addEventListener('click', () => {
+            els.modalSkip.close();
+            triggerDeathModal(state.streak, state.xp);
+            hardReset();
+            state.workoutCompletions[todayStr] = true; // Mark as done so they don't get punished twice today
+            saveState();
+        });
+
+        els.btnAddTask.addEventListener('click', () => openTaskModal());
+        els.btnCancelTask.addEventListener('click', () => els.modalTask.close());
+        
+        els.btnAcceptDeath.addEventListener('click', () => els.modalDeath.close());
+
+        // Dev Tool
+        els.btnDevNextDay.addEventListener('click', () => {
+            // Trick the system by setting last active date to 2 days ago
+            const d = new Date();
+            d.setDate(d.getDate() - 2);
+            state.lastActiveDate = getLocalYYYYMMDD(d);
+            saveState();
+            location.reload();
+        });
+
+        // Boot
+        init();
+
+    </script>
+</body>
+</html>
